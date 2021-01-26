@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core.xsd">
+
+    <!--缓存模板，可被其他缓存引用，避免重复定义相似的cache-->
+    <cache-template name="heap-cache">
+        <resources>
+            <heap>2000</heap>
+            <offheap unit="MB">100</offheap>
+        </resources>
+    </cache-template>
+    <!--引用上面定义的模板-->
+    <cache alias="dictCache" uses-template="heap-cache">
+        <expiry>
+            <ttl>600</ttl>
+        </expiry>
+    </cache>
+    <cache alias="perfCache" uses-template="heap-cache">
+        <expiry>
+            <ttl>600</ttl>
+        </expiry>
+    </cache>
+    <cache alias="chartCache" uses-template="heap-cache">
+        <expiry>
+            <ttl unit="minutes">720</ttl>
+        </expiry>
+    </cache>
+    <cache alias="fileCache" uses-template="heap-cache">
+        <expiry>
+            <ttl unit="minutes">720</ttl>
+        </expiry>
+    </cache>
+</config>

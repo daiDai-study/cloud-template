@@ -1,0 +1,35 @@
+nacos:
+  namespace: 97f58639-1805-4bf3-bfcb-ee1183e5973d
+  group: KPI_GROUP
+
+spring:
+  #数据源通用配置
+  datasource:
+    druid:
+      # MSSQL连接信息
+      url: jdbc:sqlserver://10.177.97.180:1433; DatabaseName=kpi_dev
+      driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      username: sqluser
+      password: 123456!a
+  cloud:
+    nacos:
+      discovery:
+        namespace: ${nacos.namespace}
+        group: ${nacos.group}
+        server-addr: 10.177.181.160:81
+      config:
+        server-addr: ${spring.cloud.nacos.discovery.server-addr}
+        file-extension: yaml
+        # group 对应 nacos 配置管理中的组，默认为 DEFAULT_GROUP
+        group: ${nacos.group}
+        # namespace 对应 nacos 配置管理中的命名空间，默认为 public，修改时对应的是命名空间ID
+        namespace: ${nacos.namespace}
+    sentinel:
+      transport:
+        dashboard: 10.177.108.187:8080
+        port: 8719
+  sleuth:
+    sampler:
+      probability: 1
+  zipkin:
+    base-url: http://10.177.108.187:9411/

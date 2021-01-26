@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aac.kpi.system.mapper.SysPermissionMapper">
+
+
+    <resultMap id="TreeModel" type="com.aac.kpi.system.model.tree.TreeModel">
+        <result column="id" property="key" jdbcType="VARCHAR"/>
+        <result column="name" property="title" jdbcType="VARCHAR"/>
+        <result column="icon" property="icon" jdbcType="VARCHAR"/>
+        <result column="parent_id" property="parentId" jdbcType="VARCHAR"/>
+        <result column="leaf_flag" property="isLeaf" jdbcType="INTEGER"/>
+    </resultMap>
+
+
+    <select id="queryListByParentId" parameterType="Object" resultMap="TreeModel">
+        SELECT
+        id
+        ,parent_id
+        ,name
+        ,icon
+        ,leaf_flag
+        FROM sys_permission
+        WHERE del_flag = 0
+        <choose>
+            <when test="parentId != null and parentId != ''">
+                AND parent_id = #{parentId,jdbcType=VARCHAR}
+            </when>
+            <otherwise>
+                AND parent_id is null
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="queryByUser" parameterType="Object" resultType="com.aac.kpi.system.entity.SysPermission">
+		   SELECT p.*
+		   FROM  sys_permission p
+		   WHERE exists(
+		   		select a.id from sys_role_permission a
+		   		join sys_role b on a.role_id = b.id
+		   		join sys_user_role c on c.role_id = b.id
+		   		join sys_user d on d.id = c.user_id
+		   		where p.id = a.permission_id AND d.username = #{username,jdbcType=VARCHAR}
+		   		and b.del_flag = 0
+		   		and d.del_flag = 0
+		   )
+		   and p.del_flag = 0
+		   order by p.menu_type, p.sort_no ASC
+	</select>
+
+
+</mapper>

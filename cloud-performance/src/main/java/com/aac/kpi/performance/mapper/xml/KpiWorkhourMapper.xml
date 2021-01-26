@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aac.kpi.performance.mapper.KpiWorkhourMapper">
+
+    <select id="getByCompositeUnique" resultType="com.aac.kpi.performance.entity.KpiWorkhour">
+         select * from kpi_workhour
+         where del_flag = 0
+         and usrid = #{username}
+         and project = #{project}
+         and the_date = #{theDate}
+    </select>
+
+    <select id="listByMonthAndProjectAndWeek" resultType="com.aac.kpi.performance.entity.KpiWorkhour">
+         select * from kpi_workhour
+         where del_flag = 0
+         and the_month = #{theMonth}
+         and project = #{project}
+         and the_week = #{theWeek}
+    </select>
+
+    <select id="listByProjects" resultType="com.aac.kpi.performance.entity.KpiWorkhour">
+         select * from kpi_workhour
+         where del_flag = 0
+         and project in
+         <foreach collection="projects" open="(" separator="," close=")" item="project">
+             #{project}
+         </foreach>
+    </select>
+
+    <select id="listMonthlyWorkhourByProjectAndMonth" resultType="com.aac.kpi.performance.model.dto.MonthlyWorkhourDTO">
+        select project, the_month, usrid as username, count(*) as recordCount,
+        sum(workhour) as monthlyWorkhour
+        from kpi_workhour
+        where del_flag = 0
+        and project = #{project}
+        and the_month = #{theMonth}
+        and confirmed = 1
+        group by project, the_month, usrid
+    </select>
+
+    <select id="getWorkhourMonthly" resultType="java.math.BigDecimal">
+        select sum(workhour)
+        from kpi_workhour
+        where del_flag = 0
+        and project = #{project}
+        and the_month = #{theMonth}
+        and usrid = #{username}
+    </select>
+
+    <select id="getWorkhourConfirmedMonthly" resultType="java.math.BigDecimal">
+        select sum(workhour)
+        from kpi_workhour
+        where del_flag = 0
+        and project = #{project}
+        and the_month = #{theMonth}
+        and usrid = #{username}
+        and confirmed = 1
+    </select>
+
+</mapper>

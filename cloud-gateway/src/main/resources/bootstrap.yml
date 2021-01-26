@@ -1,0 +1,14 @@
+server:
+  port: 8100
+
+spring:
+  application:
+    name: @artifactId@
+  profiles:
+    active: @profiles.active@
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

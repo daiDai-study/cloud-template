@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aac.kpi.performance.mapper.KpiCalendarMapper">
+
+    <select id="listWeekByMonth" resultType="int">
+        select distinct the_week
+        from kpi_calendar
+        where the_month = #{theMonth}
+        order by the_week
+    </select>
+
+    <select id="listDateByMonthAndWeek" resultType="string">
+        select the_date
+        from kpi_calendar
+        where the_month = #{theMonth}
+        and the_week = #{theWeek}
+        order by the_date
+    </select>
+
+</mapper>

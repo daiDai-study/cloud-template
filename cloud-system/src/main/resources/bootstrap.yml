@@ -1,0 +1,50 @@
+server:
+  port: 9000
+  servlet:
+    context-path: /system
+
+spring:
+  application:
+    name: @artifactId@
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+  profiles:
+    active: @profiles.active@
+
+  cloud:
+    sentinel:
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${spring.cloud.nacos.discovery.server-addr}
+            namespace: ${nacos.namespace}
+            groupId: ${nacos.group}
+            dataId: ${spring.application.name}-sentinel-${spring.profiles.active}
+            data-type: json
+            rule-type: flow
+
+feign:
+  sentinel:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+
+app:
+  name: KPI
+  description: KPI系统
+
+sso:
+  #  isOpen: ON 启用 OFF不启用
+  isOpen: ON
+  loginUrl: http://sso.aac.com/login.aspx
+  validateUrl: http://sso.aac.com/ValidateTaken.aspx
+  wsdlUrl: http://sso.aac.com/UsersService.asmx?WSDL
+  logoutUrl: http://sso.aac.com/exit.aspx
+  username: ADUser
+  realname: UserName
+  status: Status

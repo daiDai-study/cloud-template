@@ -1,0 +1,40 @@
+server:
+  port: 9100
+  servlet:
+    context-path: /performance
+
+spring:
+  application:
+    name: @artifactId@
+  jackson:
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+    deserialization:
+      #允许对象作为数据
+      ACCEPT_SINGLE_VALUE_AS_ARRAY: true
+      #允许对象忽略json中不存在的属性
+      fail_on_unknown_properties: false
+  profiles:
+    active: @profiles.active@
+
+  cloud:
+    sentinel:
+      datasource:
+        ds1:
+          nacos:
+            server-addr: ${spring.cloud.nacos.discovery.server-addr}
+            namespace: ${nacos.namespace}
+            groupId: ${nacos.group}
+            dataId: ${spring.application.name}-sentinel-${spring.profiles.active}
+            data-type: json
+            rule-type: flow
+
+feign:
+  sentinel:
+    enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

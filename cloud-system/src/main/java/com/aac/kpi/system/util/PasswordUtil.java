@@ -1,0 +1,204 @@
+package com.aac.kpi.system.util;
+
+import cn.hutool.core.util.StrUtil;
+import com.aac.kpi.system.constant.SystemConst;
+import com.aac.kpi.system.entity.SysUser;
+import lombok.extern.slf4j.Slf4j;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.PBEParameterSpec;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Random;
+
+@Slf4j
+public class PasswordUtil {
+
+    /**
+     * JAVA6支持以下算法
+     * PBEWITHMD5ANDDES
+     * PBEWITHMD5ANDTRIPLEDES
+     * PBEWITHSHAANDDESEDE
+     * PBEWITHSHA1ANDRC2_40
+     * PBKDF2WITHHMACSHA1
+     * <p>
+     * 加密算法，该工具类使用 PBEWITHMD5ANDDES 算法
+     */
+    private static final String ALGORITHM = "PBEWithMD5AndDES";
+
+    /**
+     * 迭代次数
+     */
+    private static final int ITERATION_COUNT = 1000;
+
+    /**
+     * 解密密文字符串
+     *
+     * @param ciphertext 待解密的密文字符串
+     * @param password   生成密钥时所使用的密码(如需解密,该参数需要与加密时使用的一致)
+     * @param salt       盐值(如需解密,该参数需要与加密时使用的一致)
+     * @return 解密后的明文字符串
+     */
+    public static String decrypt(String ciphertext, String password, String salt) {
+        Key key = getPBEKey(password);
+        byte[] passDec = null;
+        PBEParameterSpec parameterSpec = new PBEParameterSpec(salt.getBytes(), ITERATION_COUNT);
+        try {
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, key, parameterSpec);
+            passDec = cipher.doFinal(hexStringToBytes(ciphertext));
+        } catch (Exception e) {
+            log.error("解密密文字符串失败：{}", e.getMessage(), e);
+            throw new RuntimeException("解密密文字符串失败：" + e.getMessage());
+        }
+        assert passDec != null;
+        return new String(passDec);
+    }
+
+    /**
+     * 根据PBE密码生成一把密钥
+     *
+     * @param password 生成密钥时所使用的密码
+     * @return Key PBE算法密钥
+     */
+    private static Key getPBEKey(String password) {
+        // 实例化使用的算法
+        SecretKeyFactory keyFactory;
+        SecretKey secretKey = null;
+        try {
+            keyFactory = SecretKeyFactory.getInstance(ALGORITHM);
+            // 设置PBE密钥参数
+            PBEKeySpec keySpec = new PBEKeySpec(password.toCharArray());
+            // 生成密钥
+            secretKey = keyFactory.generateSecret(keySpec);
+        } catch (Exception e) {
+            log.error("PBE密钥生成失败：{}", e.getMessage(), e);
+        }
+
+        return secretKey;
+    }
+
+    /**
+     * 将十六进制字符串转换为字节数组
+     *
+     * @param hexString 十六进制字符串
+     */
+    private static byte[] hexStringToBytes(String hexString) {
+        if (hexString == null || "".equals(hexString)) {
+            return null;
+        }
+        hexString = hexString.toUpperCase();
+        int length = hexString.length() / 2;
+        char[] hexChars = hexString.toCharArray();
+        byte[] d = new byte[length];
+        for (int i = 0; i < length; i++) {
+            int pos = i * 2;
+            d[i] = (byte) (charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]) & 0xff);
+        }
+        return d;
+    }
+
+    private static byte charToByte(char c) {
+        return (byte) "0123456789ABCDEF".indexOf(c);
+    }
+
+    /**
+     * 加密明文字符串
+     *
+     * @param plaintext 待加密的明文字符串
+     * @param password  生成密钥时所使用的密码
+     * @param salt      盐值
+     * @return 加密后的密文字符串
+     */
+    public static String encrypt(String plaintext, String password, String salt) {
+
+        Key key = getPBEKey(password);
+        byte[] encipheredData = null;
+        PBEParameterSpec parameterSpec = new PBEParameterSpec(salt.getBytes(), ITERATION_COUNT);
+        try {
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec);
+            encipheredData = cipher.doFinal(plaintext.getBytes());
+        } catch (Exception e) {
+            log.error("加密明文字符串失败：{}", e.getMessage(), e);
+        }
+        return bytesToHexString(encipheredData);
+    }
+
+    /**
+     * 将字节数组转换为十六进制字符串
+     *
+     * @param src 字节数组
+     */
+    private static String bytesToHexString(byte[] src) {
+        StringBuilder stringBuilder = new StringBuilder("");
+        if (src == null || src.length <= 0) {
+            return null;
+        }
+        for (byte b : src) {
+            int v = b & 0xFF;
+            String hv = Integer.toHexString(v);
+            if (hv.length() < 2) {
+                stringBuilder.append(0);
+            }
+            stringBuilder.append(hv);
+        }
+        return stringBuilder.toString();
+    }
+
+    /**
+     * 动态盐值
+     */
+    public static String getSalt() {
+        return "12345678";
+//        return getSalt(8);
+    }
+
+    public static String getEncrypt(String username, String password, String salt) {
+        if (StrUtil.isEmpty(username) || StrUtil.isEmpty(password) || StrUtil.isEmpty(salt)) {
+            throw new RuntimeException("加密密码时，用户、密码和盐值不能为空");
+        }
+        // 检验盐值的字节
+        byte[] bytes = salt.getBytes();
+        if (bytes.length != 8) {
+            throw new RuntimeException("加密密码时，盐值字节长度必须为 8");
+        }
+
+        return PasswordUtil.encrypt(username, password, salt);
+    }
+
+    public static String getEncrypt(String username, String salt) {
+        return getEncrypt(username, SystemConst.DEFAULT_PASSWORD, salt);
+    }
+
+    public static String getEncrypt(SysUser sysUser, String password) {
+        if (StrUtil.isEmpty(sysUser.getSalt())) {
+            sysUser.setSalt(getSalt());
+        }
+        if (StrUtil.isEmpty(password)) {
+            return getEncrypt(sysUser, SystemConst.DEFAULT_PASSWORD);
+        }
+        return getEncrypt(sysUser.getUsername(), password, sysUser.getSalt());
+    }
+
+    /**
+     * 密码默认
+     */
+    public static String getEncrypt(SysUser sysUser) {
+        return getEncrypt(sysUser, null);
+    }
+
+    /**
+     * 动态盐值 TODO:目前 getSalt(8) 生成的字符串是乱码的，待解决
+     */
+    public static String getSalt(int numBytes) {
+        // 安全随机数
+        SecureRandom random = new SecureRandom();
+        // 生成盐值
+        return new String(random.generateSeed(numBytes));
+    }
+}
