@@ -17,4 +17,6 @@ public interface CommonConst {
     String PROJECT_DAILY_WORK = "DailyWork";
 
     String[] PROJECT_OWNER_ROLE_LIST = {"PO", "SM", "ARCH"};
+
+    String RESPONSE_API_RESULT_ANN = "responseApiResultAnn";
 }

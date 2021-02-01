@@ -3,6 +3,7 @@ package com.aac.kpi.system.controller;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.aac.kpi.common.aspect.ApiResultAspect;
 import com.aac.kpi.common.constant.CommonConst;
 import com.aac.kpi.common.model.ApiResult;
 import com.aac.kpi.system.annotation.DictToData;
@@ -37,6 +38,7 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequestMapping("/user")
+@ApiResultAspect
 public class SysUserController extends BaseManagementController<SysUser, SysUserService> {
     @Resource
     private SysUserRoleService sysUserRoleService;
